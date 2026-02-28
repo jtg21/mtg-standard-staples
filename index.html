@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 </head>
 <body>
   <header>
@@ -30,6 +31,7 @@
         <button class="filter-btn" data-filter="Enchantment">Enchantments</button>
         <button class="filter-btn" data-filter="Artifact">Artifacts</button>
         <button class="filter-btn" data-filter="Planeswalker">Planeswalkers</button>
+        <button class="filter-btn" data-filter="Land">Lands</button>
       </div>
       <div class="sort-controls">
         <label>Sort by:</label>
@@ -45,6 +47,22 @@
     <section class="metagame-section">
       <h2>Standard Metagame</h2>
       <p class="section-desc">Click a deck to highlight its key cards below</p>
+
+      <div class="metagame-viz">
+        <div class="pie-chart-container">
+          <canvas id="meta-pie"></canvas>
+        </div>
+        <div class="history-panel">
+          <div class="history-header">
+            <h3>Metagame Over Time</h3>
+            <span class="history-date" id="history-date">Feb 2026</span>
+          </div>
+          <input type="range" id="history-slider" min="0" max="5" value="5" step="1">
+          <div class="slider-labels" id="slider-labels"></div>
+          <div class="history-legend" id="history-legend"></div>
+        </div>
+      </div>
+
       <div class="deck-grid" id="deck-grid"></div>
     </section>
 
