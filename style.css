@@ -327,7 +327,7 @@ main {
   background: rgba(99, 102, 241, 0.1);
 }
 
-.rank-col { width: 50px; text-align: center; }
+.rank-col { width: 40px; text-align: center; white-space: nowrap; }
 .type-col { width: 110px; }
 .pct-col { width: 100px; }
 .copies-col { width: 100px; }
@@ -403,22 +403,17 @@ main {
   cursor: pointer;
 }
 
-.card-row td:first-child {
-  position: relative;
-}
-
 .expand-icon {
-  display: inline-block;
-  width: 16px;
-  height: 16px;
-  line-height: 16px;
-  text-align: center;
-  font-size: 0.7rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  font-size: 0.6rem;
   color: var(--text-muted);
   border-radius: 3px;
-  margin-right: 4px;
   transition: transform 0.2s, color 0.2s;
-  vertical-align: middle;
 }
 
 .card-row:hover .expand-icon {
@@ -437,7 +432,7 @@ main {
 }
 
 .meta-panel {
-  padding: 0.75rem 1rem 0.75rem 3.2rem;
+  padding: 0.75rem 1rem;
   background: var(--surface);
   border-top: 1px solid var(--border);
 }
@@ -598,7 +593,9 @@ footer p + p {
   .controls { flex-direction: column; }
   .deck-grid { grid-template-columns: 1fr; }
   .type-col, .copies-col { display: none; }
-  .cards-table th, .cards-table td { padding: 0.5rem; }
+  .cards-table th, .cards-table td { padding: 0.5rem 0.4rem; }
+  .rank-col { width: 32px; font-size: 0.8rem; }
+  .meta-deck-chip { font-size: 0.75rem; padding: 0.25rem 0.5rem; }
 }
 
 @media (max-width: 480px) {

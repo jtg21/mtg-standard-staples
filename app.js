@@ -112,9 +112,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
       html += `
         <tr class="card-row ${isHighlighted ? "highlighted" : ""} ${isExpanded ? "expanded" : ""}" data-card="${card.name}">
-          <td class="rank-col"><span class="expand-icon">&#9654;</span>${globalIdx}</td>
+          <td class="rank-col">${globalIdx}</td>
           <td class="card-col">
             <div class="card-name-cell">
+              <span class="expand-icon">&#9654;</span>
               <a class="card-name-link" href="${goldfishUrl}" target="_blank"
                  data-card-name="${card.name}">${card.name}</a>
             </div>
