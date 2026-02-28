@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MTG Standard Staples</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <h1>MTG Standard Staples</h1>
+      <p class="subtitle">Top played cards in Standard tournaments &middot; Data from <a href="https://www.mtggoldfish.com/format-staples/standard" target="_blank">MTGGoldfish</a></p>
+      <p class="updated">Last updated: February 28, 2026</p>
+    </div>
+  </header>
+
+  <main>
+    <section class="controls">
+      <div class="search-box">
+        <input type="text" id="search" placeholder="Search cards...">
+      </div>
+      <div class="filter-buttons">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="Creature">Creatures</button>
+        <button class="filter-btn" data-filter="Instant">Instants</button>
+        <button class="filter-btn" data-filter="Sorcery">Sorceries</button>
+        <button class="filter-btn" data-filter="Enchantment">Enchantments</button>
+        <button class="filter-btn" data-filter="Artifact">Artifacts</button>
+        <button class="filter-btn" data-filter="Planeswalker">Planeswalkers</button>
+      </div>
+      <div class="sort-controls">
+        <label>Sort by:</label>
+        <select id="sort-select">
+          <option value="percent-desc">% of Decks (High to Low)</option>
+          <option value="percent-asc">% of Decks (Low to High)</option>
+          <option value="copies-desc">Avg Copies (High to Low)</option>
+          <option value="name-asc">Name (A-Z)</option>
+        </select>
+      </div>
+    </section>
+
+    <section class="metagame-section">
+      <h2>Standard Metagame</h2>
+      <p class="section-desc">Click a deck to highlight its key cards below</p>
+      <div class="deck-grid" id="deck-grid"></div>
+    </section>
+
+    <section class="cards-section">
+      <h2>Top Played Cards <span id="card-count" class="card-count"></span></h2>
+      <div class="cards-table-wrapper">
+        <table class="cards-table" id="cards-table">
+          <thead>
+            <tr>
+              <th class="rank-col">#</th>
+              <th class="card-col">Card</th>
+              <th class="type-col">Type</th>
+              <th class="pct-col">% Decks</th>
+              <th class="copies-col">Avg Copies</th>
+              <th class="decks-col">Found In</th>
+            </tr>
+          </thead>
+          <tbody id="cards-body"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <div class="card-preview" id="card-preview">
+    <img id="preview-img" src="" alt="">
+  </div>
+
+  <footer>
+    <p>Data sourced from <a href="https://www.mtggoldfish.com" target="_blank">MTGGoldfish</a>. Card images from <a href="https://scryfall.com" target="_blank">Scryfall</a>.</p>
+    <p>Not affiliated with Wizards of the Coast.</p>
+  </footer>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
