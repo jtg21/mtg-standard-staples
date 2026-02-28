@@ -6,11 +6,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const deckGrid = document.getElementById("deck-grid");
   const cardPreview = document.getElementById("card-preview");
   const previewImg = document.getElementById("preview-img");
+  const paginationEl = document.getElementById("pagination");
   const filterBtns = document.querySelectorAll(".filter-btn");
 
   let activeFilter = "all";
   let selectedDeck = null;
-  let imageCache = {};
+  let expandedCard = null;
+  let currentPage = 1;
+  let pageSize = 10;
 
   // Render decks
   function renderDecks() {
@@ -37,6 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
           deckGrid.querySelectorAll(".deck-card").forEach(d => d.classList.remove("selected"));
           el.classList.add("selected");
         }
+        currentPage = 1;
         renderCards();
       });
     });
@@ -66,10 +70,31 @@ document.addEventListener("DOMContentLoaded", () => {
     return cards;
   }
 
-  // Render cards table
+  // Build deck chips HTML for a card
+  function buildDeckChips(cardName) {
+    const decks = CARD_TO_DECKS[cardName] || [];
+    if (decks.length === 0) {
+      return '<span class="meta-none">Appears across various decks as a format staple</span>';
+    }
+    return decks.map(dName => {
+      const deck = DECKS.find(d => d.name === dName);
+      const meta = deck ? deck.meta + "%" : "";
+      return `<span class="meta-deck-chip" data-deck="${dName}">${dName}${meta ? ` <span class="chip-meta">${meta}</span>` : ""}</span>`;
+    }).join("");
+  }
+
+  // Render cards table with pagination
   function renderCards() {
-    const cards = getVisibleCards();
-    cardCount.textContent = `(${cards.length} cards)`;
+    const allCards = getVisibleCards();
+    const totalCards = allCards.length;
+    const totalPages = Math.max(1, Math.ceil(totalCards / pageSize));
+
+    if (currentPage > totalPages) currentPage = totalPages;
+
+    const startIdx = (currentPage - 1) * pageSize;
+    const pageCards = allCards.slice(startIdx, startIdx + pageSize);
+
+    cardCount.textContent = `(${totalCards} cards)`;
 
     // Find which cards belong to selected deck
     const highlightCards = new Set();
@@ -78,14 +103,16 @@ document.addEventListener("DOMContentLoaded", () => {
       if (deck) deck.keyCards.forEach(c => highlightCards.add(c));
     }
 
-    cardsBody.innerHTML = cards.map((card, i) => {
-      const decks = CARD_TO_DECKS[card.name] || [];
+    let html = "";
+    pageCards.forEach((card, i) => {
+      const globalIdx = startIdx + i + 1;
       const isHighlighted = highlightCards.has(card.name);
+      const isExpanded = expandedCard === card.name;
       const goldfishUrl = `https://www.mtggoldfish.com/price/Standard/${encodeURIComponent(card.name)}`;
 
-      return `
-        <tr class="${isHighlighted ? "highlighted" : ""}" data-card="${card.name}">
-          <td class="rank-col">${i + 1}</td>
+      html += `
+        <tr class="card-row ${isHighlighted ? "highlighted" : ""} ${isExpanded ? "expanded" : ""}" data-card="${card.name}">
+          <td class="rank-col"><span class="expand-icon">&#9654;</span>${globalIdx}</td>
           <td class="card-col">
             <div class="card-name-cell">
               <a class="card-name-link" href="${goldfishUrl}" target="_blank"
@@ -106,15 +133,47 @@ document.addEventListener("DOMContentLoaded", () => {
           <td class="copies-col">
             <span class="copies-value">${card.copies.toFixed(1)}</span>
           </td>
-          <td class="decks-col">
-            <div class="deck-tags">
-              ${decks.map(d => `<span class="deck-tag">${d}</span>`).join("")}
-              ${decks.length === 0 ? '<span class="deck-tag">Various</span>' : ""}
+        </tr>`;
+
+      if (isExpanded) {
+        html += `
+        <tr class="meta-row">
+          <td colspan="5">
+            <div class="meta-panel">
+              <div class="meta-label">Associated Decks</div>
+              <div class="meta-deck-list">${buildDeckChips(card.name)}</div>
             </div>
           </td>
-        </tr>
-      `;
-    }).join("");
+        </tr>`;
+      }
+    });
+
+    cardsBody.innerHTML = html;
+
+    // Attach row click to expand/collapse
+    cardsBody.querySelectorAll(".card-row").forEach(row => {
+      row.addEventListener("click", (e) => {
+        // Don't toggle if they clicked the card name link
+        if (e.target.closest(".card-name-link")) return;
+        const cardName = row.dataset.card;
+        expandedCard = expandedCard === cardName ? null : cardName;
+        renderCards();
+      });
+    });
+
+    // Clicking a deck chip in the meta panel selects that deck
+    cardsBody.querySelectorAll(".meta-deck-chip").forEach(chip => {
+      chip.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const deckName = chip.dataset.deck;
+        selectedDeck = selectedDeck === deckName ? null : deckName;
+        deckGrid.querySelectorAll(".deck-card").forEach(d => {
+          d.classList.toggle("selected", d.dataset.deck === selectedDeck);
+        });
+        currentPage = 1;
+        renderCards();
+      });
+    });
 
     // Attach hover previews
     cardsBody.querySelectorAll(".card-name-link").forEach(link => {
@@ -122,6 +181,90 @@ document.addEventListener("DOMContentLoaded", () => {
       link.addEventListener("mousemove", movePreview);
       link.addEventListener("mouseleave", hidePreview);
     });
+
+    renderPagination(totalCards, totalPages);
+  }
+
+  // Pagination
+  function renderPagination(totalCards, totalPages) {
+    if (totalCards <= pageSize && pageSize === 10) {
+      paginationEl.innerHTML = "";
+      return;
+    }
+
+    let html = "";
+
+    // Prev button
+    html += `<button class="page-btn" data-page="prev" ${currentPage <= 1 ? "disabled" : ""}>&laquo; Prev</button>`;
+
+    // Page numbers
+    const pages = getPageNumbers(currentPage, totalPages);
+    pages.forEach(p => {
+      if (p === "...") {
+        html += `<span class="page-info">...</span>`;
+      } else {
+        html += `<button class="page-btn ${p === currentPage ? "active" : ""}" data-page="${p}">${p}</button>`;
+      }
+    });
+
+    // Next button
+    html += `<button class="page-btn" data-page="next" ${currentPage >= totalPages ? "disabled" : ""}>Next &raquo;</button>`;
+
+    // Page size selector
+    html += `
+      <div class="page-size-controls">
+        <label>Show:</label>
+        <select id="page-size-select">
+          <option value="10" ${pageSize === 10 ? "selected" : ""}>10</option>
+          <option value="25" ${pageSize === 25 ? "selected" : ""}>25</option>
+          <option value="50" ${pageSize === 50 ? "selected" : ""}>50</option>
+        </select>
+      </div>`;
+
+    paginationEl.innerHTML = html;
+
+    // Attach page button clicks
+    paginationEl.querySelectorAll(".page-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const val = btn.dataset.page;
+        if (val === "prev") currentPage--;
+        else if (val === "next") currentPage++;
+        else currentPage = parseInt(val);
+        expandedCard = null;
+        renderCards();
+        document.querySelector(".cards-section").scrollIntoView({ behavior: "smooth" });
+      });
+    });
+
+    // Page size change
+    const pageSizeSelect = document.getElementById("page-size-select");
+    if (pageSizeSelect) {
+      pageSizeSelect.addEventListener("change", () => {
+        pageSize = parseInt(pageSizeSelect.value);
+        currentPage = 1;
+        expandedCard = null;
+        renderCards();
+      });
+    }
+  }
+
+  // Compute which page numbers to show (with ellipsis)
+  function getPageNumbers(current, total) {
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+
+    const pages = [];
+    pages.push(1);
+
+    if (current > 3) pages.push("...");
+
+    for (let i = Math.max(2, current - 1); i <= Math.min(total - 1, current + 1); i++) {
+      pages.push(i);
+    }
+
+    if (current < total - 2) pages.push("...");
+
+    pages.push(total);
+    return pages;
   }
 
   // Card image preview using Scryfall
@@ -130,8 +273,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function showPreview(e, cardName) {
-    const imgUrl = getScryfallUrl(cardName);
-    previewImg.src = imgUrl;
+    previewImg.src = getScryfallUrl(cardName);
     cardPreview.style.display = "block";
     movePreview(e);
   }
@@ -156,15 +298,25 @@ document.addEventListener("DOMContentLoaded", () => {
       filterBtns.forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
       activeFilter = btn.dataset.filter;
+      currentPage = 1;
+      expandedCard = null;
       renderCards();
     });
   });
 
-  // Search
-  searchInput.addEventListener("input", () => renderCards());
+  // Search — reset to page 1
+  searchInput.addEventListener("input", () => {
+    currentPage = 1;
+    expandedCard = null;
+    renderCards();
+  });
 
-  // Sort
-  sortSelect.addEventListener("change", () => renderCards());
+  // Sort — reset to page 1
+  sortSelect.addEventListener("change", () => {
+    currentPage = 1;
+    expandedCard = null;
+    renderCards();
+  });
 
   // Init
   renderDecks();
